@@ -113,11 +113,11 @@ func main() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
 	go func() {
-		signalType := <-ch
+		sigReceived := <-ch
 		signal.Stop(ch)
-		fmt.Println("Exit command received.", signalType)
-		os.Remove(PidFile)
+		fmt.Println("Exit command received.", sigReceived)
 		srv.Shutdown(nil)
+		os.Remove(PidFile)
 		os.Exit(0)
 
 	}()
