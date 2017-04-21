@@ -110,11 +110,11 @@ func main() {
 	http.HandleFunc("/api/status", statusHandler)
 	http.HandleFunc("/api/upload", uploadHandler)
 
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
+	sig_chan := make(chan os.Signal, 1)
+	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
 	go func() {
-		sigReceived := <-ch
-		signal.Stop(ch)
+		sigReceived := <-sig_chan
+		signal.Stop(sig_chan)
 		fmt.Println("Exit command received.", sigReceived)
 		srv.Shutdown(nil)
 		os.Remove(PidFile)
