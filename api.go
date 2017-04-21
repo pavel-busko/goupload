@@ -1,7 +1,8 @@
 package main
 
 import (
-	//	"encoding/json"
+	//"flag"
+	//"path"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,8 +13,6 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
-	//	"os/user"
-	//	"path"
 )
 
 var BaseDir = "/home/pbusko/Desktop/Flask_pictures/"
