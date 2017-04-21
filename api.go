@@ -47,7 +47,7 @@ func init() {
 	var ListenIp string
 	var u string
 	flag.StringVar(&BaseDir, "upload-dir", "", "Base dir for uploaded files to save")
-	flag.StringVar(&u, "url", "http://cdn.thomascook.com/", "Base url for access links.")
+	flag.StringVar(&u, "url", "", "Base url for access links.")
 	flag.StringVar(&PidFile, "pid-file", "", "Path to pid file.")
 	flag.StringVar(&LogFile, "log-file", "", "Path to log file.")
 	flag.StringVar(&ListenPort, "port", "8080", "Port to listen.")
