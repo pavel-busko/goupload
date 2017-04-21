@@ -13,14 +13,6 @@ var allowedMimeTypes = []string{
 	"image/pict",
 }
 
-type mimeInvalid struct {
-	value string
-}
-
-func (m mimeInvalid) Error() string {
-	return m.value
-}
-
 func checkMime(m string) bool {
 	for _, mi := range allowedMimeTypes {
 		if m == mi {
@@ -44,7 +36,7 @@ func validateMimeType(f []*multipart.FileHeader) (err error) {
 		file.Seek(0, 0)
 		contentType := http.DetectContentType(mime_buffer)
 		if !checkMime(contentType) {
-			err = mimeInvalid{"Only images allowed to upload. Aborting"}
+			err = errorType{"Only images allowed to upload. Aborting"}
 			return err
 		}
 

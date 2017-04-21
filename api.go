@@ -19,6 +19,14 @@ var BaseDir = "/home/pbusko/Desktop/Flask_pictures/"
 var BaseURL, _ = url.Parse("http://cdn.thomascook.com/")
 var PidFile = "/home/pbusko/Desktop/Flask_pictures/api.pid"
 
+type errorType struct {
+	value string
+}
+
+func (m errorType) Error() string {
+	return m.value
+}
+
 type UploadedFile struct {
 	name string
 	url  string
@@ -32,13 +40,13 @@ func (response *ApiResponse) AddFile(file UploadedFile) {
 	response.images = append(response.images, file)
 }
 
-func savePidFile(pid int) {
+func savePidFile(pid int) error {
 	data := []byte(strconv.Itoa(pid))
 	err := ioutil.WriteFile(PidFile, data, 0644)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
+		return err
 	}
+	return err
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +106,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	savePidFile(os.Getpid())
+	err := savePidFile(os.Getpid())
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+
 	f, err := os.OpenFile("cdn-api.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		log.Fatal(err)
