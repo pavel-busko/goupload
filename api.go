@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"flag"
+	"flag"
 	//"path"
 	"fmt"
 	"io"
@@ -15,9 +15,11 @@ import (
 	"syscall"
 )
 
-var BaseDir = "/home/pbusko/Desktop/Flask_pictures/"
-var BaseURL, _ = url.Parse("http://cdn.thomascook.com/")
-var PidFile = "/home/pbusko/Desktop/Flask_pictures/api.pid"
+var BaseDir string
+var BaseURL *url.URL
+var PidFile string
+var LogFile string
+var ListenAddress string
 
 type errorType struct {
 	value string
@@ -38,6 +40,21 @@ type ApiResponse struct {
 
 func (response *ApiResponse) AddFile(file UploadedFile) {
 	response.images = append(response.images, file)
+}
+
+func init() {
+	var ListenPort string
+	var ListenIp string
+	var u string
+	flag.StringVar(&BaseDir, "upload-dir", "", "Base dir for uploaded files to save")
+	flag.StringVar(&u, "url", "http://cdn.thomascook.com/", "Base url for access links.")
+	flag.StringVar(&PidFile, "pid-file", "", "Path to pid file.")
+	flag.StringVar(&LogFile, "log-file", "", "Path to log file.")
+	flag.StringVar(&ListenPort, "port", "8080", "Port to listen.")
+	flag.StringVar(&ListenIp, "host", "127.0.0.1", "Host address to listen.")
+	flag.Parse()
+	BaseURL, _ = url.Parse(u)
+	ListenAddress = ListenIp + ":" + ListenPort
 }
 
 func savePidFile(pid int) error {
@@ -61,6 +78,8 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, IndexPage)
 
 	case "POST":
+		//response := ApiResponse{}
+
 		err := r.ParseMultipartForm(200000)
 		if err != nil {
 			fmt.Fprintln(w, err)
@@ -112,14 +131,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	f, err := os.OpenFile("cdn-api.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+	f, err := os.OpenFile(LogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 	log.SetOutput(f)
 
-	srv := http.Server{Addr: "127.0.0.1:8080"}
+	srv := http.Server{Addr: ListenAddress}
 	http.HandleFunc("/api/status", statusHandler)
 	http.HandleFunc("/api/upload", uploadHandler)
 
@@ -132,7 +151,7 @@ func main() {
 		srv.Shutdown(nil)
 		os.Remove(PidFile)
 		os.Exit(0)
-
 	}()
+
 	log.Fatal(srv.ListenAndServe())
 }
