@@ -37,6 +37,7 @@ func savePidFile(pid int) {
 	err := ioutil.WriteFile(PidFile, data, 0644)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
 	}
 }
 
