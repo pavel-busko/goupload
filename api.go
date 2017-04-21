@@ -85,14 +85,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	var url1, _ = url.Parse("test/folder")
-	var url2, _ = url.Parse("/test/folder")
-	var url3, _ = url.Parse("/test/folder/")
-	var url4, _ = url.Parse("test/folder/")
-	fmt.Println(BaseURL.ResolveReference(url1))
-	fmt.Println(BaseURL.ResolveReference(url2))
-	fmt.Println(BaseURL.ResolveReference(url3))
-	fmt.Println(BaseURL.ResolveReference(url4))
 	f, err := os.OpenFile("cdn-api.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		log.Fatal(err)
