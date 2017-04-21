@@ -25,7 +25,7 @@ var IndexPage = `<!DOCTYPE html>
 <div class="form-group row">
 <label for="files" class="col-sm-2 col-form-label">Select images:</label>
 <div class="col-sm-10">
-<input type="file" class="form-control" id="files" required="" name="files" multiple="">
+<input type="file" class="form-control" id="files" required="" name="file" multiple="">
 </div>
 </div>
 <div class="form-group row">

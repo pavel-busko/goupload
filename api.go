@@ -4,16 +4,21 @@ import (
 	//	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
 	//	"os/user"
 	//	"path"
 )
 
 var BaseDir = "/home/pbusko/Desktop/Flask_pictures/"
 var BaseURL, _ = url.Parse("http://cdn.thomascook.com/")
+var PidFile = "/home/pbusko/Desktop/Flask_pictures/api.pid"
 
 type UploadedFile struct {
 	name string
@@ -26,6 +31,14 @@ type ApiResponse struct {
 
 func (response *ApiResponse) AddFile(file UploadedFile) {
 	response.images = append(response.images, file)
+}
+
+func savePidFile(pid int) {
+	data := []byte(strconv.Itoa(pid))
+	err := ioutil.WriteFile(PidFile, data, 0644)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+	}
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +59,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		files := r.MultipartForm.File["files"]
+		files := r.MultipartForm.File["file"]
 		err = validateMimeType(files)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -85,6 +98,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	savePidFile(os.Getpid())
 	f, err := os.OpenFile("cdn-api.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		log.Fatal(err)
@@ -92,7 +106,20 @@ func main() {
 	defer f.Close()
 	log.SetOutput(f)
 
+	srv := http.Server{Addr: "127.0.0.1:8080"}
 	http.HandleFunc("/api/status", statusHandler)
 	http.HandleFunc("/api/upload", uploadHandler)
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
+
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
+	go func() {
+		signalType := <-ch
+		signal.Stop(ch)
+		fmt.Println("Exit command received.", signalType)
+		os.Remove(PidFile)
+		srv.Shutdown(nil)
+		os.Exit(0)
+
+	}()
+	log.Fatal(srv.ListenAndServe())
 }
