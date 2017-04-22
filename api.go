@@ -139,8 +139,6 @@ func main() {
 	log.SetOutput(f)
 
 	srv := http.Server{Addr: ListenAddress}
-	http.HandleFunc("/api/status", statusHandler)
-	http.HandleFunc("/api/upload", uploadHandler)
 
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
@@ -153,5 +151,7 @@ func main() {
 		os.Exit(0)
 	}()
 
+	http.HandleFunc("/api/status", statusHandler)
+	http.HandleFunc("/api/upload", uploadHandler)
 	log.Fatal(srv.ListenAndServe())
 }
