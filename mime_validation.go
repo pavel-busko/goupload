@@ -36,7 +36,7 @@ func validateMimeType(f []*multipart.FileHeader) (err error) {
 		file.Seek(0, 0)
 		contentType := http.DetectContentType(mime_buffer)
 		if !checkMime(contentType) {
-			err = errorType{"Only images allowed to upload. Aborting"}
+			err = errorType{"One or more files with forbidden MIME-type received. Aborting"}
 			return err
 		}
 
