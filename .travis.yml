@@ -2,3 +2,6 @@ language: go
 
 go:
   - master
+
+install:
+  - go install github.com/pavel-busko/goupload
