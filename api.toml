@@ -3,7 +3,7 @@ pidfile = "/home/pbusko/drafts/golang/src/cdn.api/api.pid"
 
 [upload]
 path = "/home/pbusko/Desktop/Flask_pictures"
-mime_types = "image/jpeg,image/png,image/gif,image/x-icon,image/pict"
+mime_types = "image/jpeg;image/png;image/gif;image/x-icon;image/pict"
 
 [http]
 address = "127.0.0.1:8080"

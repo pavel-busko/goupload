@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"golang.org/x/sys/unix"
 	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,6 +20,7 @@ import (
 var BaseDir string
 var BaseURL *url.URL
 var IndexPage string
+var allowedMimeTypes []string
 
 type errorType struct {
 	value string
@@ -53,11 +54,7 @@ func init() {
 	BaseDir = viper.GetString("upload.path")
 	BaseURL, _ = url.Parse(viper.GetString("http.base_url"))
 	IndexPage = viper.GetString("http.index_page")
-	allowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ",")
-
-	if err := unix.Access(BaseDir, unix.W_OK); err != nil {
-		log.Fatal(err)
-	}
+	allowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ";")
 }
 
 func savePidFile(pid int, pfile string) error {
@@ -66,6 +63,38 @@ func savePidFile(pid int, pfile string) error {
 	if err != nil {
 		return err
 	}
+	return err
+}
+
+func checkMime(m string) bool {
+	for _, mi := range allowedMimeTypes {
+		if m == mi {
+			return true
+		}
+	}
+	return false
+}
+
+func validateMimeType(f []*multipart.FileHeader) (err error) {
+	mime_buffer := make([]byte, 512)
+
+	for i, _ := range f {
+		file, err := f[i].Open()
+		defer file.Close()
+
+		_, err = file.Read(mime_buffer)
+		if err != nil {
+			return err
+		}
+		file.Seek(0, 0)
+		contentType := http.DetectContentType(mime_buffer)
+		if !checkMime(contentType) {
+			err = errorType{"{\"error\": \"One or more files with forbidden MIME-type received. Aborting\"}"}
+			return err
+		}
+
+	}
+	err = nil
 	return err
 }
 
@@ -122,6 +151,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, files[i].Filename+"\n")
 
 		}
+
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
