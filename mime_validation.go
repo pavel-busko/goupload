@@ -5,13 +5,7 @@ import (
 	"net/http"
 )
 
-var allowedMimeTypes = []string{
-	"image/jpeg",
-	"image/png",
-	"image/gif",
-	"image/x-icon",
-	"image/pict",
-}
+var allowedMimeTypes []string
 
 func checkMime(m string) bool {
 	for _, mi := range allowedMimeTypes {

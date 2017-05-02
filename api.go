@@ -1,9 +1,9 @@
 package main
 
 import (
-	"flag"
-	//"path"
 	"fmt"
+	"github.com/spf13/viper"
+	"golang.org/x/sys/unix"
 	"io"
 	"io/ioutil"
 	"log"
@@ -11,15 +11,15 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
 var BaseDir string
 var BaseURL *url.URL
-var PidFile string
-var LogFile string
-var ListenAddress string
+var IndexPage string
 
 type errorType struct {
 	value string
@@ -43,23 +43,26 @@ func (response *ApiResponse) AddFile(file UploadedFile) {
 }
 
 func init() {
-	var ListenPort string
-	var ListenIp string
-	var u string
-	flag.StringVar(&BaseDir, "upload-dir", "", "Base dir for uploaded files to save")
-	flag.StringVar(&u, "url", "", "Base url for access links.")
-	flag.StringVar(&PidFile, "pid-file", "", "Path to pid file.")
-	flag.StringVar(&LogFile, "log-file", "", "Path to log file.")
-	flag.StringVar(&ListenPort, "port", "8080", "Port to listen.")
-	flag.StringVar(&ListenIp, "host", "127.0.0.1", "Host address to listen.")
-	flag.Parse()
-	BaseURL, _ = url.Parse(u)
-	ListenAddress = ListenIp + ":" + ListenPort
+	viper.SetConfigName("api")
+	viper.AddConfigPath(filepath.Base(os.Args[1]))
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	BaseDir = viper.GetString("upload.path")
+	BaseURL, _ = url.Parse(viper.GetString("http.base_url"))
+	IndexPage = viper.GetString("http.index_page")
+	allowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ",")
+
+	if err := unix.Access(BaseDir, unix.W_OK); err != nil {
+		log.Fatal(err)
+	}
 }
 
-func savePidFile(pid int) error {
+func savePidFile(pid int, pfile string) error {
 	data := []byte(strconv.Itoa(pid))
-	err := ioutil.WriteFile(PidFile, data, 0644)
+	err := ioutil.WriteFile(pfile, data, 0644)
 	if err != nil {
 		return err
 	}
@@ -125,20 +128,14 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	err := savePidFile(os.Getpid())
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
-	f, err := os.OpenFile(LogFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+	pfile := viper.GetString("base.pidfile")
+	err := savePidFile(os.Getpid(), pfile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer f.Close()
-	log.SetOutput(f)
 
-	srv := http.Server{Addr: ListenAddress}
+	srv := http.Server{Addr: viper.GetString("http.address")}
+	log.Println("Server started.")
 
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
@@ -147,7 +144,7 @@ func main() {
 		signal.Stop(sig_chan)
 		fmt.Println("Exit command received.", sigReceived)
 		srv.Shutdown(nil)
-		os.Remove(PidFile)
+		os.Remove(pfile)
 		os.Exit(0)
 	}()
 

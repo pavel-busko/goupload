@@ -1,6 +1,14 @@
-package main
+[base]
+pidfile = "/home/pbusko/drafts/golang/src/cdn.api/api.pid"
 
-var IndexPage = `<!DOCTYPE html>
+[upload]
+path = "/home/pbusko/Desktop/Flask_pictures"
+mime_types = "image/jpeg,image/png,image/gif,image/x-icon,image/pict"
+
+[http]
+address = "127.0.0.1:8080"
+base_url = "http://cdn.thomascook.com"
+index_page = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -48,4 +56,4 @@ var IndexPage = `<!DOCTYPE html>
 <!--<div class="alert alert-success" role="alert"><b>Success!</b> New promotion code has been uploaded.</div>-->
 </div>
 </body>
-</html>`
+</html>"""
