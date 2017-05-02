@@ -3,8 +3,7 @@ language: go
 go:
   - master
 
-script:
-  - go get github.com/spf13/viper
-
 install:
+  - go get github.com/spf13/viper
+  - go get golang.org/x/sys/unix
   - go install github.com/pavel-busko/goupload
