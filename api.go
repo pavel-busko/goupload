@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"io"
-	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -59,7 +58,13 @@ func init() {
 
 func savePidFile(pid int, pfile string) error {
 	data := []byte(strconv.Itoa(pid))
-	err := ioutil.WriteFile(pfile, data, 0644)
+	f, err := os.OpenFile(pfile, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.Write(data)
 	if err != nil {
 		return err
 	}
