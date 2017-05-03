@@ -20,13 +20,13 @@ import (
 var BaseDir string
 var BaseURL *url.URL
 var IndexPage string
-var allowedMimeTypes []string
-var listener net.Listener
-var socketType string
-var socket string
-var uploadUrl string
-var statusUrl string
-var pfile string
+var AllowedMimeTypes []string
+var Listener net.Listener
+var SocketType string
+var Socket string
+var UploadUrl string
+var StatusUrl string
+var Pfile string
 
 type errorType struct {
 	Value string `json:"error"`
@@ -60,28 +60,28 @@ func init() {
 	BaseDir = viper.GetString("upload.path")
 	BaseURL, _ = url.Parse(viper.GetString("http.base_url"))
 	IndexPage = viper.GetString("http.index_page")
-	allowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ";")
-	uploadUrl = viper.GetString("http.upload_url")
-	statusUrl = viper.GetString("http.status_url")
-	pfile = viper.GetString("base.pidfile")
+	AllowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ";")
+	UploadUrl = viper.GetString("http.upload_url")
+	StatusUrl = viper.GetString("http.status_url")
+	Pfile = viper.GetString("base.pidfile")
 
-	socketType = viper.GetString("base.socket_type")
-	if socketType == "tcp" {
-		socket = viper.GetString("base.tcp_socket")
-		listener, err = net.Listen("tcp", socket)
+	SocketType = viper.GetString("base.socket_type")
+	if SocketType == "tcp" {
+		Socket = viper.GetString("base.tcp_socket")
+		Listener, err = net.Listen("tcp", Socket)
 		if err != nil {
 			log.Fatal(err)
 		}
-	} else if socketType == "unix" {
-		socket = viper.GetString("base.unix_socket")
-		if _, err = os.Stat(socket); err == nil {
-			err = os.Remove(socket)
+	} else if SocketType == "unix" {
+		Socket = viper.GetString("base.unix_socket")
+		if _, err = os.Stat(Socket); err == nil {
+			err = os.Remove(Socket)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 
-		listener, err = net.Listen("unix", socket)
+		Listener, err = net.Listen("unix", Socket)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -92,7 +92,7 @@ func init() {
 
 func savePidFile(pid int) error {
 	data := []byte(strconv.Itoa(pid))
-	f, err := os.OpenFile(pfile, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(Pfile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func savePidFile(pid int) error {
 }
 
 func checkMime(m *string) bool {
-	for _, mi := range allowedMimeTypes {
+	for _, mi := range AllowedMimeTypes {
 		if *m == mi {
 			return true
 		}
@@ -203,7 +203,7 @@ func main() {
 	}
 
 	srv := &http.Server{}
-	log.Println("Server started, serving on:", socketType, socket)
+	log.Println("Server started, serving on:", SocketType, Socket)
 
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
@@ -212,11 +212,11 @@ func main() {
 		signal.Stop(sig_chan)
 		fmt.Println("Exit command received.", sigReceived)
 		srv.Shutdown(nil)
-		os.Remove(pfile)
+		os.Remove(Pfile)
 		os.Exit(0)
 	}()
 
-	http.HandleFunc(statusUrl, statusHandler)
-	http.HandleFunc(uploadUrl, uploadHandler)
-	log.Fatal(srv.Serve(listener))
+	http.HandleFunc(StatusUrl, statusHandler)
+	http.HandleFunc(UploadUrl, uploadHandler)
+	log.Fatal(srv.Serve(Listener))
 }
