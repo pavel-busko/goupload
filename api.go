@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -27,6 +28,9 @@ var Socket string
 var UploadUrl string
 var StatusUrl string
 var Pfile string
+var PathRegexp *regexp.Regexp
+var ErrLogger *log.Logger
+var OutLogger *log.Logger
 
 type errorType struct {
 	Value string `json:"error"`
@@ -50,43 +54,52 @@ func (response *ApiResponse) AddFile(file UploadedFile) {
 }
 
 func init() {
+	if len(os.Args) < 2 {
+		fmt.Fprintln(os.Stderr, "Usage:", filepath.Base(os.Args[0]), "/path/to/config_folder")
+		os.Exit(1)
+	}
+
+	ErrLogger = log.New(os.Stderr, "", log.LstdFlags)
+	OutLogger = log.New(os.Stdout, "", log.LstdFlags)
+
 	viper.SetConfigName("api")
 	viper.AddConfigPath(filepath.Base(os.Args[1]))
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatal(err)
+		ErrLogger.Fatal(err)
 	}
-
+	PathRegexp, _ = regexp.Compile("^/?(?:[0-9a-zA-Z_\\-\\.]+/?)+?$")
 	BaseDir = viper.GetString("upload.path")
-	BaseURL, _ = url.Parse(viper.GetString("http.base_url"))
+	BaseURL, err = url.Parse(viper.GetString("http.base_url"))
+	if err != nil {
+		ErrLogger.Fatal(err)
+	}
 	IndexPage = viper.GetString("http.index_page")
 	AllowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ";")
 	UploadUrl = viper.GetString("http.upload_url")
 	StatusUrl = viper.GetString("http.status_url")
 	Pfile = viper.GetString("base.pidfile")
-
 	SocketType = viper.GetString("base.socket_type")
 	if SocketType == "tcp" {
 		Socket = viper.GetString("base.tcp_socket")
 		Listener, err = net.Listen("tcp", Socket)
 		if err != nil {
-			log.Fatal(err)
+			ErrLogger.Fatal(err)
 		}
 	} else if SocketType == "unix" {
 		Socket = viper.GetString("base.unix_socket")
 		if _, err = os.Stat(Socket); err == nil {
 			err = os.Remove(Socket)
 			if err != nil {
-				log.Fatal(err)
+				ErrLogger.Fatal(err)
 			}
 		}
-
 		Listener, err = net.Listen("unix", Socket)
 		if err != nil {
-			log.Fatal(err)
+			ErrLogger.Fatal(err)
 		}
 	} else {
-		log.Fatal("Unknown socket type, check your config.")
+		ErrLogger.Fatal("Unknown socket type, check your config.")
 	}
 }
 
@@ -157,10 +170,22 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		files := r.MultipartForm.File["file"]
+		files, exists := r.MultipartForm.File["file"]
+		if !exists {
+			http.Error(w, "No files provided, aborted.", http.StatusBadRequest)
+			return
+		}
 		err = validateMimeType(files)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		fpath, exists := r.MultipartForm.Value["path"]
+		if !exists {
+			fpath = []string{""}
+		} else if valid := PathRegexp.MatchString(fpath[0]); !valid {
+			http.Error(w, "Invalid path provided, aborted.", http.StatusBadRequest)
 			return
 		}
 
@@ -199,18 +224,18 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	err := savePidFile(os.Getpid())
 	if err != nil {
-		log.Fatal(err)
+		ErrLogger.Fatal(err)
 	}
 
 	srv := &http.Server{}
-	log.Println("Server started, serving on:", SocketType, Socket)
+	OutLogger.Println("Server started, listener at:", SocketType, Socket)
 
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
 	go func() {
 		sigReceived := <-sig_chan
 		signal.Stop(sig_chan)
-		fmt.Println("Exit command received.", sigReceived)
+		OutLogger.Println("Exit command received.", sigReceived)
 		srv.Shutdown(nil)
 		os.Remove(Pfile)
 		os.Exit(0)
@@ -218,5 +243,5 @@ func main() {
 
 	http.HandleFunc(StatusUrl, statusHandler)
 	http.HandleFunc(UploadUrl, uploadHandler)
-	log.Fatal(srv.Serve(Listener))
+	ErrLogger.Fatal(srv.Serve(Listener))
 }
