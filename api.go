@@ -22,11 +22,11 @@ var IndexPage string
 var allowedMimeTypes []string
 
 type errorType struct {
-	value string `json:"error"`
+	Value string `json:"error"`
 }
 
 func (m errorType) Error() string {
-	return m.value
+	return m.Value
 }
 
 type UploadedFile struct {
