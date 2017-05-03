@@ -90,7 +90,7 @@ func init() {
 	}
 }
 
-func savePidFile(pid int, pfile string) error {
+func savePidFile(pid int) error {
 	data := []byte(strconv.Itoa(pid))
 	f, err := os.OpenFile(pfile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -197,7 +197,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	err := savePidFile(os.Getpid(), pfile)
+	err := savePidFile(os.Getpid())
 	if err != nil {
 		log.Fatal(err)
 	}
