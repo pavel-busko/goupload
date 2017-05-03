@@ -169,7 +169,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	srv := http.Server{Addr: viper.GetString("http.address")}
+	srv := &http.Server{Addr: viper.GetString("http.address")}
 	log.Println("Server started.")
 
 	sig_chan := make(chan os.Signal, 1)
