@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,6 +21,7 @@ var BaseDir string
 var BaseURL *url.URL
 var IndexPage string
 var allowedMimeTypes []string
+var listener net.Listener
 
 type errorType struct {
 	Value string `json:"error"`
@@ -169,7 +171,30 @@ func main() {
 		log.Fatal(err)
 	}
 
-	srv := &http.Server{Addr: viper.GetString("http.tcp_socket")}
+	socket_type := viper.GetString("http.socket_type")
+	if socket_type == "tcp" {
+		listener, err = net.Listen("tcp", viper.GetString("http.tcp_socket"))
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if socket_type == "unix" {
+		socket := viper.GetString("http.unix_socket")
+		if _, err = os.Stat(socket); err == nil {
+			err = os.Remove(socket)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		listener, err = net.Listen("unix", socket)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Fatal("Unknown socket type. Check your config.")
+	}
+
+	srv := &http.Server{}
 	log.Println("Server started.")
 
 	sig_chan := make(chan os.Signal, 1)
@@ -185,5 +210,5 @@ func main() {
 
 	http.HandleFunc("/api/status", statusHandler)
 	http.HandleFunc("/api/upload", uploadHandler)
-	log.Fatal(srv.ListenAndServe())
+	log.Fatal(srv.Serve(listener))
 }

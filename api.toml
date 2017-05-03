@@ -6,6 +6,8 @@ path = "/home/pbusko/Desktop/Flask_pictures"
 mime_types = "image/jpeg;image/png;image/gif;image/x-icon;image/pict"
 
 [http]
+socket_type = "tcp"
+unix_socket = "/tmp/goupload.sock"
 tcp_socket = "127.0.0.1:8080"
 base_url = "http://somename.com"
 index_page = """<!DOCTYPE html>
