@@ -107,7 +107,7 @@ func validateMimeType(f []*multipart.FileHeader) (err error) {
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Status success")
+	fmt.Fprintf(w, "{\"status\": \"running\"}")
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
