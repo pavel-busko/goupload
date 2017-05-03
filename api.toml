@@ -31,7 +31,7 @@ index_page = """<!DOCTYPE html>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
 <div class="container">
 <form method="post" enctype="multipart/form-data">
-<h2 align="center">Upload new images</h2><br>
+<h2 align="center">Upload new files</h2><br>
 <div class="form-group row">
 <label for="files" class="col-sm-2 col-form-label">Select images:</label>
 <div class="col-sm-10">
@@ -55,7 +55,6 @@ index_page = """<!DOCTYPE html>
 </div>
 </div>
 </form>
-<!--<div class="alert alert-success" role="alert"><b>Success!</b> New promotion code has been uploaded.</div>-->
 </div>
 </body>
 </html>"""
