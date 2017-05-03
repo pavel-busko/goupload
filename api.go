@@ -22,6 +22,7 @@ var BaseURL *url.URL
 var IndexPage string
 var allowedMimeTypes []string
 var listener net.Listener
+var socket string
 
 type errorType struct {
 	Value string `json:"error"`
@@ -173,12 +174,13 @@ func main() {
 
 	socket_type := viper.GetString("http.socket_type")
 	if socket_type == "tcp" {
-		listener, err = net.Listen("tcp", viper.GetString("http.tcp_socket"))
+		socket = viper.GetString("http.tcp_socket")
+		listener, err = net.Listen("tcp", socket)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else if socket_type == "unix" {
-		socket := viper.GetString("http.unix_socket")
+		socket = viper.GetString("http.unix_socket")
 		if _, err = os.Stat(socket); err == nil {
 			err = os.Remove(socket)
 			if err != nil {
@@ -195,7 +197,7 @@ func main() {
 	}
 
 	srv := &http.Server{}
-	log.Println("Server started.")
+	log.Println("Server started. Serving on:", socket_type, socket)
 
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
