@@ -26,6 +26,7 @@ var socketType string
 var socket string
 var uploadUrl string
 var statusUrl string
+var pfile string
 
 type errorType struct {
 	Value string `json:"error"`
@@ -62,6 +63,7 @@ func init() {
 	allowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ";")
 	uploadUrl = viper.GetString("http.upload_url")
 	statusUrl = viper.GetString("http.status_url")
+	pfile = viper.GetString("base.pidfile")
 
 	socketType = viper.GetString("base.socket_type")
 	if socketType == "tcp" {
@@ -195,7 +197,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	pfile := viper.GetString("base.pidfile")
 	err := savePidFile(os.Getpid(), pfile)
 	if err != nil {
 		log.Fatal(err)
