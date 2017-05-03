@@ -1,14 +1,16 @@
 [base]
 pidfile = "/home/pbusko/drafts/golang/src/cdn.api/api.pid"
+socket_type = "tcp"
+unix_socket = "/tmp/goupload.sock"
+tcp_socket = "127.0.0.1:8080"
 
 [upload]
 path = "/home/pbusko/Desktop/Flask_pictures"
 mime_types = "image/jpeg;image/png;image/gif;image/x-icon;image/pict"
 
 [http]
-socket_type = "tcp"
-unix_socket = "/tmp/goupload.sock"
-tcp_socket = "127.0.0.1:8080"
+upload_url = "/api/upload"
+status_url = "/api/status"
 base_url = "http://somename.com"
 index_page = """<!DOCTYPE html>
 <html lang="en">

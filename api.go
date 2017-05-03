@@ -22,7 +22,10 @@ var BaseURL *url.URL
 var IndexPage string
 var allowedMimeTypes []string
 var listener net.Listener
+var socketType string
 var socket string
+var uploadUrl string
+var statusUrl string
 
 type errorType struct {
 	Value string `json:"error"`
@@ -57,6 +60,32 @@ func init() {
 	BaseURL, _ = url.Parse(viper.GetString("http.base_url"))
 	IndexPage = viper.GetString("http.index_page")
 	allowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ";")
+	uploadUrl = viper.GetString("http.upload_url")
+	statusUrl = viper.GetString("http.status_url")
+
+	socketType = viper.GetString("base.socket_type")
+	if socketType == "tcp" {
+		socket = viper.GetString("base.tcp_socket")
+		listener, err = net.Listen("tcp", socket)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if socketType == "unix" {
+		socket = viper.GetString("base.unix_socket")
+		if _, err = os.Stat(socket); err == nil {
+			err = os.Remove(socket)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		listener, err = net.Listen("unix", socket)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		log.Fatal("Unknown socket type. Check your config.")
+	}
 }
 
 func savePidFile(pid int, pfile string) error {
@@ -172,32 +201,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	socket_type := viper.GetString("http.socket_type")
-	if socket_type == "tcp" {
-		socket = viper.GetString("http.tcp_socket")
-		listener, err = net.Listen("tcp", socket)
-		if err != nil {
-			log.Fatal(err)
-		}
-	} else if socket_type == "unix" {
-		socket = viper.GetString("http.unix_socket")
-		if _, err = os.Stat(socket); err == nil {
-			err = os.Remove(socket)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-
-		listener, err = net.Listen("unix", socket)
-		if err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		log.Fatal("Unknown socket type. Check your config.")
-	}
-
 	srv := &http.Server{}
-	log.Println("Server started. Serving on:", socket_type, socket)
+	log.Println("Server started. Serving on:", socketType, socket)
 
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
@@ -210,7 +215,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	http.HandleFunc("/api/status", statusHandler)
-	http.HandleFunc("/api/upload", uploadHandler)
+	http.HandleFunc(statusUrl, statusHandler)
+	http.HandleFunc(uploadUrl, uploadHandler)
 	log.Fatal(srv.Serve(listener))
 }
