@@ -55,7 +55,7 @@ func (response *ApiResponse) AddFile(file UploadedFile) {
 
 func init() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "Usage:", filepath.Base(os.Args[0]), "/config/folder/path")
+		fmt.Fprintln(os.Stderr, "Usage:", filepath.Base(os.Args[0]), "/config/folder")
 		os.Exit(1)
 	}
 
