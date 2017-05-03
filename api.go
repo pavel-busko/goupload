@@ -84,7 +84,7 @@ func init() {
 			log.Fatal(err)
 		}
 	} else {
-		log.Fatal("Unknown socket type. Check your config.")
+		log.Fatal("Unknown socket type, check your config.")
 	}
 }
 
@@ -202,7 +202,7 @@ func main() {
 	}
 
 	srv := &http.Server{}
-	log.Println("Server started. Serving on:", socketType, socket)
+	log.Println("Server started, serving on:", socketType, socket)
 
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
