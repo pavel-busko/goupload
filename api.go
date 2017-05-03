@@ -39,7 +39,7 @@ type ApiResponse struct {
 }
 
 func (response *ApiResponse) AddFile(file UploadedFile) {
-	response.images = append(response.images, file)
+	response.Images = append(response.Images, file)
 }
 
 func init() {
@@ -71,9 +71,9 @@ func savePidFile(pid int, pfile string) error {
 	return err
 }
 
-func checkMime(m string) bool {
+func checkMime(m *string) bool {
 	for _, mi := range allowedMimeTypes {
-		if m == mi {
+		if *m == mi {
 			return true
 		}
 	}
@@ -93,7 +93,7 @@ func validateMimeType(f []*multipart.FileHeader) (err error) {
 		}
 		file.Seek(0, 0)
 		contentType := http.DetectContentType(mime_buffer)
-		if !checkMime(contentType) {
+		if !checkMime(&contentType) {
 			err = &errorType{"One or more files with forbidden MIME-type received. Aborting"}
 			return err
 		}
