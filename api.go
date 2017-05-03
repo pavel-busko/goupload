@@ -22,7 +22,7 @@ var IndexPage string
 var allowedMimeTypes []string
 
 type errorType struct {
-	value string
+	value string `json:"error"`
 }
 
 func (m errorType) Error() string {
@@ -30,12 +30,12 @@ func (m errorType) Error() string {
 }
 
 type UploadedFile struct {
-	name string
-	url  string
+	Name string `json:"name"`
+	Url  string `json:"url"`
 }
 
 type ApiResponse struct {
-	images []UploadedFile
+	Images []UploadedFile `json:"images"`
 }
 
 func (response *ApiResponse) AddFile(file UploadedFile) {
@@ -94,7 +94,7 @@ func validateMimeType(f []*multipart.FileHeader) (err error) {
 		file.Seek(0, 0)
 		contentType := http.DetectContentType(mime_buffer)
 		if !checkMime(contentType) {
-			err = errorType{"{\"error\": \"One or more files with forbidden MIME-type received. Aborting\"}"}
+			err = &errorType{"One or more files with forbidden MIME-type received. Aborting"}
 			return err
 		}
 
