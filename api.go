@@ -80,7 +80,7 @@ func init() {
 	AllowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ";")
 	UploadUrl = viper.GetString("http.upload_url")
 	StatusUrl = viper.GetString("http.status_url")
-	Pfile = viper.GetString("base.pidfile")
+	Pfile = viper.GetString("base.pid_file")
 	SocketType = viper.GetString("base.socket_type")
 
 	if SocketType == "tcp" {

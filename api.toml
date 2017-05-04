@@ -1,5 +1,5 @@
 [base]
-pidfile = "/tmp/api.pid"
+pid_file = "/tmp/api.pid"
 socket_type = "tcp"
 unix_socket = "/tmp/goupload.sock"
 tcp_socket = "127.0.0.1:8080"
