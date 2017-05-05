@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
@@ -215,7 +216,6 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			fname := filepath.Base(files[i].Filename)
-			fmt.Println(fname)
 			out, err := os.Create(filepath.Join(uplPath, fname))
 			defer out.Close()
 			if err != nil {
@@ -259,8 +259,12 @@ func main() {
 		ErrLogger.Fatal(err)
 	}
 
-	srv := &http.Server{}
-	OutLogger.Println("Server started, listener at:", SocketType, Socket)
+	srv := &http.Server{Handler: http.DefaultServeMux}
+	http.HandleFunc(StatusUrl, statusHandler)
+	http.HandleFunc(UploadUrl, uploadHandler)
+
+	OutLogger.Println("Listening:", SocketType, Socket)
+	OutLogger.Println("Server started, with pid:", os.Getpid())
 
 	sig_chan := make(chan os.Signal, 1)
 	signal.Notify(sig_chan, os.Interrupt, os.Kill, syscall.SIGTERM)
@@ -268,12 +272,12 @@ func main() {
 		sigReceived := <-sig_chan
 		signal.Stop(sig_chan)
 		OutLogger.Println("Exit command received.", sigReceived)
-		srv.Shutdown(nil)
+		err = srv.Shutdown(context.Background())
+		if err != nil {
+			ErrLogger.Fatal(err)
+		}
 		os.Remove(Pfile)
 		os.Exit(0)
 	}()
-
-	http.HandleFunc(StatusUrl, statusHandler)
-	http.HandleFunc(UploadUrl, uploadHandler)
 	ErrLogger.Fatal(srv.Serve(Listener))
 }
