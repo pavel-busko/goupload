@@ -28,7 +28,7 @@ case "$1" in
         PID=`pidofproc -p ${PID_FILE} ${PROCESS_NAME}`
         if [[ (-n ${PID}) && ($PID -gt 0) ]]; then
             echo "${PROCESS_NAME}(pid ${PID}) is  already running."
-            exit 1;
+            exit $RETVAL;
         fi
         if [[ -f ${PROG} ]]; then
             echo "Starting ${PROCESS_NAME}"
@@ -48,7 +48,11 @@ case "$1" in
                     sleep 0.1
                 done
             fi
-            echo "${PROCESS_NAME} started with pid `cat ${PID_FILE}`"
+            if [[ ${RETVAL} = 0 ]]; then
+                echo "${PROCESS_NAME} started with pid `cat ${PID_FILE}`"
+            else
+                echo "Failed to start ${PROCESS_NAME}. Check error log for more info"
+            fi
         fi
         ;;
  stop)
