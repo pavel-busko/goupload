@@ -3,8 +3,8 @@
 [base]
 pid_file = "/tmp/api.pid" # Path to the pid file
 socket_type = "tcp" # Specify socket type to listen ("tcp" or "unix").
-unix_socket = "/tmp/goupload.sock" # Path to unix domain socket (if socket_type = "unix")
-tcp_socket = "127.0.0.1:8080" # TCP socket (if socket_type = "tcp")
+unix_socket = "/tmp/goupload.sock" # Path to unix domain socket (if socktype = "unix")
+tcp_socket = "127.0.0.1:8080" # TCP socket (if socktype = "tcp")
 
 [upload]
 path = "/var/www/" # Base dir for files to upload
