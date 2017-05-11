@@ -4,14 +4,14 @@
 . /etc/init.d/functions
 
 # Dir with cdn.api config
-CONF_DIR="/etc/cdn.api/"
+CONF_DIR="/etc/goupload/"
 
 # Run as user
 API_USER=apache
 
 # Path to binary
-PROG=/usr/local/bin/cdn.api
-PROCESS_NAME=cdn.api
+PROG=/usr/local/bin/goupload
+PROCESS_NAME=goupload
 
 # Path to the pid_file
 PID_FILE=$(grep "pid_file" ${CONF_DIR}/api.toml | awk -F'"' '{print $2}')
@@ -32,7 +32,7 @@ case "$1" in
         fi
         if [[ -f ${PROG} ]]; then
             echo "Starting ${PROCESS_NAME}"
-            su - ${API_USER} -c "${PROG} ${CONF_DIR} >> /etc/cdn.api/api.log 2>> /etc/cdn.api/err.log &"
+            su - ${API_USER} -c "${PROG} ${CONF_DIR} >> /etc/goupload/api.log 2>> /etc/goupload/err.log &"
             RETVAL=$?
 
             if [[ ${SOCK_TYPE} = "tcp" ]]; then
