@@ -64,9 +64,13 @@ func init() {
 	ErrLogger = log.New(os.Stderr, "", log.LstdFlags)
 	OutLogger = log.New(os.Stdout, "", log.LstdFlags)
 
+	conf_path, err := filepath.Abs(os.Args[1])
+	if err != nil {
+		ErrLogger.Fatal(err)
+	}
 	viper.SetConfigName("api")
-	viper.AddConfigPath(filepath.Base(os.Args[1]))
-	err := viper.ReadInConfig()
+	viper.AddConfigPath(conf_path)
+	err = viper.ReadInConfig()
 	if err != nil {
 		ErrLogger.Fatal(err)
 	}
