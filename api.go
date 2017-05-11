@@ -276,7 +276,10 @@ func main() {
 		if err != nil {
 			ErrLogger.Fatal(err)
 		}
-		os.Remove(Pfile)
+		err = os.Remove(Pfile)
+		if err != nil {
+			ErrLogger.Fatal(err)
+		}
 		os.Exit(0)
 	}()
 	ErrLogger.Fatal(srv.Serve(Listener))
