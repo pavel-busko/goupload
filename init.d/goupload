@@ -1,4 +1,20 @@
 #!/bin/bash
+#
+# goupload
+#
+# chkconfig: 345 96 30
+# description:  Start up the GOUPLOAD service.
+#
+# processname: goupload
+# pidfile: /tmp/api.pid
+#
+### BEGIN INIT INFO
+# Provides: goupload
+# Required-Start: $network $syslog
+# Required-Stop: $network $syslog
+# Short-Description: start and stop GOUPLOAD service
+# Description: GOUPLOAD is an API for CDN origin server.
+## END INIT INFO
 
 # Source function library
 . /etc/init.d/functions
