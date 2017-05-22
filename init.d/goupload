@@ -48,7 +48,7 @@ case "$1" in
         fi
         if [[ -f ${PROG} ]]; then
             echo "Starting ${PROCESS_NAME}"
-            su - ${API_USER} -c "${PROG} ${CONF_DIR} >> /etc/goupload/api.log 2>> /etc/goupload/err.log &"
+            su - ${API_USER} -s /bin/bash -c "${PROG} ${CONF_DIR} >> /etc/goupload/api.log 2>> /etc/goupload/err.log &"
             RETVAL=$?
 
             if [[ ${SOCK_TYPE} = "tcp" ]]; then
@@ -79,7 +79,7 @@ case "$1" in
         fi
         if [[ ${PID} -gt 0 ]]; then
             echo "Stopping ${PROCESS_NAME}..."
-            su - ${API_USER} -c "kill -15 ${PID}"
+            su - ${API_USER} -s /bin/bash -c "kill -15 ${PID}"
             RETVAL=$?
         fi
         ;;

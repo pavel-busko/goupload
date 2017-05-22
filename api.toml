@@ -11,8 +11,8 @@ path = "/var/www/" # Base dir for files to upload
 mime_types = "image/jpeg;image/png;image/gif;image/x-icon;image/pict" # List of allowed MIME-types separated with semicolons.
 
 [http]
-upload_url = "/api/upload" # URL for incoming files.
-status_url = "/api/status" # Status URL
+upload_url = "^/api/?$" # URL for incoming files.
+status_url = "^/status/?$" # Status URL
 base_url = "http://somename.com" # Base URL for generating access links. (Looks like base_url + form_path + file_name)
 # Index page will be shown if you hit upload_url with GET request
 index_page = """<!DOCTYPE html>

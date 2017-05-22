@@ -27,8 +27,8 @@ var AllowedMimeTypes []string
 var Listener net.Listener
 var SocketType string
 var Socket string
-var UploadUrl string
-var StatusUrl string
+var UploadUrl *regexp.Regexp
+var StatusUrl *regexp.Regexp
 var Pfile string
 var PathRegexp *regexp.Regexp
 var ErrLogger *log.Logger
@@ -83,8 +83,8 @@ func init() {
 	}
 	IndexPage = viper.GetString("http.index_page")
 	AllowedMimeTypes = strings.Split(viper.GetString("upload.mime_types"), ";")
-	UploadUrl = viper.GetString("http.upload_url")
-	StatusUrl = viper.GetString("http.status_url")
+	UploadUrl = regexp.MustCompile(viper.GetString("http.upload_url"))
+	StatusUrl = regexp.MustCompile(viper.GetString("http.status_url"))
 	Pfile = viper.GetString("base.pid_file")
 	SocketType = viper.GetString("base.socket_type")
 
@@ -257,6 +257,17 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func router(w http.ResponseWriter, r *http.Request) {
+	switch {
+	case UploadUrl.MatchString(r.URL.Path):
+		uploadHandler(w, r)
+	case StatusUrl.MatchString(r.URL.Path):
+		statusHandler(w, r)
+	default:
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
 func main() {
 	err := savePidFile(os.Getpid())
 	if err != nil {
@@ -264,8 +275,7 @@ func main() {
 	}
 
 	srv := &http.Server{Handler: http.DefaultServeMux}
-	http.HandleFunc(StatusUrl, statusHandler)
-	http.HandleFunc(UploadUrl, uploadHandler)
+	http.HandleFunc("/", router)
 
 	OutLogger.Println("Listening:", SocketType, Socket)
 	OutLogger.Println("Server started, with pid:", os.Getpid())
@@ -276,11 +286,11 @@ func main() {
 		sigReceived := <-sig_chan
 		signal.Stop(sig_chan)
 		OutLogger.Println("Exit command received.", sigReceived)
-		err = srv.Shutdown(context.Background())
+		err = os.Remove(Pfile)
 		if err != nil {
 			ErrLogger.Fatal(err)
 		}
-		err = os.Remove(Pfile)
+		err = srv.Shutdown(context.Background())
 		if err != nil {
 			ErrLogger.Fatal(err)
 		}
