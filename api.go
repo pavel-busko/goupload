@@ -267,6 +267,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 		statusHandler(w, r)
 	default:
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404: Not Found"))
 	}
 }
 
