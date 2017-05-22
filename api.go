@@ -159,7 +159,8 @@ func validateMimeType(f []*multipart.FileHeader) (err error) {
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "{\"status\": \"running\"}")
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("{\"status\": \"running\"}"))
 }
 
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -250,6 +251,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 			ErrLogger.Print(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(response)
 
 	default:
