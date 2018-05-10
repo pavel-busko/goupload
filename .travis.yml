@@ -6,4 +6,4 @@ go:
 install:
   - go get github.com/spf13/viper
   - go get golang.org/x/sys/unix
-  - go install github.com/pavel-busko/goupload
+  - go install github.com/pbusko/goupload
